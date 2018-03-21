@@ -1,0 +1,37 @@
+#!/usr/bin/perl
+# Convert ascii board diagrams from board_print() to ogs score est board format.
+# Usage: ./board_print_to_ogs > foo.game
+#        copy paste the diagram with header, ^D
+
+use utf8;
+binmode STDIN, ":utf8";
+binmode STDOUT, ":utf8";
+
+my $size = 0, $komi = 0.5, $handicap = 0;
+foreach my $s (<STDIN>)
+{
+    # Get komi and handicap from board header, if present
+    #if ($s =~ m/^Move: *[0-9]+ *Komi: ([0-9.-]+) *Handicap: ([0-9]+)/)
+    #{  $komi = $1;  $handicap = $2; next;  }
+    
+    $s =~ s/·/./g;  # color diagrams
+    if ($s =~ m/^ *([0-9]+) [ |]+(([.OX][ )])+)[ |]+/)
+    {   
+	$s = $2;
+	if ($size == 0)
+	{
+	    $size = split("", $s) / 2;
+	    print "# 1=black -1=white 0=open\n";
+	    print "height $size\n";
+	    print "width $size\n";
+	    print "player_to_move 1\n";  # XXX
+	    #if ($komi != 7.5)   {  print "komi $komi\n";  }
+	    #if ($handicap != 0) {  print "handicap $handicap\n";  }
+	}
+	$s =~ s/\./ 0/g;
+	$s =~ s/X/ 1/g;
+	$s =~ s/O/-1/g;
+	$s =~ s/ *$//;	
+	print "$s\n";
+    }
+}
