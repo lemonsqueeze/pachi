@@ -429,6 +429,9 @@ test_moggy_moves(struct board *b, char *arg)
 	return true;   // Not much of a unit test right now =)
 }
 
+
+int estimator_simulations = 1000;
+
 /* Play a number of playouts, show ownermap and stats on final status of given coord(s)
  * Board last move matters quite a lot and must be set.
  *
@@ -441,7 +444,7 @@ test_moggy_moves(struct board *b, char *arg)
 static bool
 test_moggy_status(struct board *b, char *arg)
 {
-	int games = 500;
+	int games = estimator_simulations;
 	coord_t              status_at[10];
 	enum point_judgement expected[10];
 	int                  thres[10];

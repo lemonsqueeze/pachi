@@ -79,7 +79,7 @@ init_engine(enum engine_id engine, char *e_arg, struct board *b)
 static void
 usage()
 {
-	fprintf(stderr, "usage: estimator file.game\n");
+	fprintf(stderr, "usage: estimator [-n sims] [-d debug_level] file.game\n");
 
 #if 0
 	fprintf(stderr, "Usage: pachi [OPTIONS] [ENGINE_ARGS]\n\n");
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
 	int opt;
 	int option_index;
 	/* Leading ':' -> we handle error messages. */
-	while ((opt = getopt_long(argc, argv, ":c:e:d:Df:g:hl:o:r:s:t:u:v", longopts, &option_index)) != -1) {
+	while ((opt = getopt_long(argc, argv, ":c:e:d:Df:g:hl:n:o:r:s:t:u:v", longopts, &option_index)) != -1) {
 		switch (opt) {
 			case 'c':
 				chatfile = strdup(optarg);
@@ -232,6 +232,9 @@ int main(int argc, char *argv[])
 				exit(0);
 			case 'l':
 				log_port = strdup(optarg);
+				break;
+			case 'n':
+				estimator_simulations = atoi(optarg);
 				break;
 			case 'o':
 				file = fopen(optarg, "w");   if (!file) fail(optarg);
@@ -292,6 +295,7 @@ int main(int argc, char *argv[])
 		if (!e_arg)  {  usage(); exit(1);  }
 		return unit_test(e_arg);
 	}
+	/* not reached */
 
 	fast_srandom(seed);
 	
