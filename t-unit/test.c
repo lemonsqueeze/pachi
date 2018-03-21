@@ -90,6 +90,23 @@ set_handicap(struct board *b, char *arg)
 }
 
 static void
+board_print_ogs(struct board *b, FILE *f)
+{
+        for (int y = board_size(b) - 2; y >= 1; y--) {
+		for (int x = 1; x < board_size(b) - 1; x++) {
+			coord_t c = coord_xy(b, x, y);			
+			const char chr[] = " o_#"; // empty, black, white, offboard
+			char ch = chr[board_at(b, c)];
+			
+			fprintf(f, "%c", ch);
+			/* if (x != board_size(b) - 2) */  fprintf(f, " ");
+		}
+		fprintf(f, "\n");
+	}	
+	fprintf(f, "\n\n");
+}
+
+static void
 board_load(struct board *b, FILE *f, unsigned int size)
 {
 	struct move last_move = { .coord = pass };
@@ -105,30 +122,19 @@ board_load(struct board *b, FILE *f, unsigned int size)
 		if (!strncmp(line, "komi ", 5))     {  set_komi(b, line + 5);     y++; continue;  }
 		if (!strncmp(line, "handicap ", 9)) {  set_handicap(b, line + 9); y++; continue;  }
 
-		if (strlen(line) != size * 2 - 1 && 
-		    strlen(line) != size * 2)       die("Line not %d char long: '%s'\n", size * 2 - 1, line);
+		if (strlen(line) != size * 3 - 1)  die("Line not %d char long: '%s'\n", size * 3 - 1, line);
 		
-		for (unsigned int i = 0; i < size * 2; i++) {
+		for (unsigned int i = 0; i < size; i++) {
 			enum stone s;
-			switch (line[i]) {
-				case '.': s = S_NONE; break;
-				case 'X': s = S_BLACK; break;
-				case 'O': s = S_WHITE; break;
-				default : die("Invalid stone '%c'\n", line[i]);
-			}
-			i++;
-			if (line[i] && line[i] != ' ' && line[i] != ')')
-				die("No space after stone %i: '%c'\n", i/2 + 1, line[i]);
-
-			struct move m = { .color = s, .coord = coord_xy(b, i/2 + 1, y + 1) };
-			if (line[i] == ')') {
-				assert(s == S_BLACK || s == S_WHITE);
-				assert(last_move.coord == pass);
-				last_move = m;
-				last_move_set = true;
-				continue;	/* Play last move last ... */
+			int num = atoi(line + i * 3);
+			switch (num) {
+				case  0: s = S_NONE; break;
+				case  1: s = S_BLACK; break;
+				case -1: s = S_WHITE; break;
+			        default : die("Invalid stone #%i: '%i'\n", i, num);
 			}
 
+			struct move m = { .color = s, .coord = coord_xy(b, i + 1, y + 1) };
 			if (s == S_NONE) continue;
 
 			check_play_move(b, &m);
@@ -138,8 +144,11 @@ board_load(struct board *b, FILE *f, unsigned int size)
 		check_play_move(b, &last_move);
 	int suicides = b->captures[S_BLACK] || b->captures[S_WHITE];
 	assert(!suicides);
+
+	//board_print(b, stderr);
 }
 
+#if 0
 static void
 set_ko(struct board *b, char *arg)
 {
@@ -160,6 +169,7 @@ set_ko(struct board *b, char *arg)
 	b->ko.coord = lib;
 	b->ko.color = stone_other(last.color);
 }
+#endif
 
 static int optional = 0;
 static char title[256];
@@ -419,7 +429,6 @@ test_moggy_moves(struct board *b, char *arg)
 	return true;   // Not much of a unit test right now =)
 }
 
-
 /* Play a number of playouts, show ownermap and stats on final status of given coord(s)
  * Board last move matters quite a lot and must be set.
  *
@@ -432,7 +441,7 @@ test_moggy_moves(struct board *b, char *arg)
 static bool
 test_moggy_status(struct board *b, char *arg)
 {
-	int games = 4000;
+	int games = 500;
 	coord_t              status_at[10];
 	enum point_judgement expected[10];
 	int                  thres[10];
@@ -456,10 +465,11 @@ test_moggy_status(struct board *b, char *arg)
 	}
 	args_end();
 	
-	if (!tunit_over_gtp) assert(last_move_set);
+	//if (!tunit_over_gtp) assert(last_move_set);
 	
 	enum stone color = (is_pass(b->last_move.coord) ? S_BLACK : stone_other(b->last_move.color));
 	board_print_test(2, b);
+	board_print_ogs(b, stdout);
 	if (DEBUGL(2))  fprintf(stderr, "moggy status ");
 	for (int i = 0; i < n; i++) {
 		char *chr = (thres[i] == 80 ? ":XO," : ":xo,");
@@ -494,9 +504,15 @@ test_moggy_status(struct board *b, char *arg)
 	else		            if (DEBUGL(2)) fprintf(stderr, "Winrate: black %i%%  [ white %i%% ]\n\n", wr_black, wr_white);
 
 	if (DEBUGL(2)) board_print_ownermap(b, stderr, &ownermap);
+	board_print_ownermap_ogs(b, stdout, &ownermap);	
+
+	float score = -board_ownermap_score_est(b, &ownermap);
+	printf("Score: %f\n", score);
+	printf("Time elapsed: %f ms\n", elapsed * 1000);
 
 	/* Check results */
 	bool ret = true;
+#if 0	
 	for (int i = 0; i < n; i++) {
 		coord_t c = status_at[i];
 		enum point_judgement j = board_ownermap_judge_point(&ownermap, c, 0.8);
@@ -513,6 +529,7 @@ test_moggy_status(struct board *b, char *arg)
 		if (!passed)  ret = false;
 		PRINT_RES(passed);
 	}
+#endif
 	
 	playout_policy_done(policy);
 	return ret;
@@ -568,6 +585,24 @@ unit_test_cmd(struct board *b, char *line)
 	die("Syntax error: %s\n", line);
 }
 
+#define board_empty(b) ((b)->flen == real_board_size(b) * real_board_size(b))
+
+static void
+pick_random_last_move(struct board *b, enum stone to_play)
+{
+        if (board_empty(b))
+                return;
+        
+        int base = fast_random(board_size2(b));
+        for (int i = base; i < base + board_size2(b); i++) {
+                coord_t c = i % board_size2(b);
+                if (board_at(b, c) == stone_other(to_play)) {
+                        b->last_move.coord = c;
+                        b->last_move.color = board_at(b, c);
+                        break;
+                }
+        }       
+}
 
 int
 unit_test(char *filename)
@@ -577,11 +612,11 @@ unit_test(char *filename)
 	FILE *f = fopen(filename, "r");
 	if (!f)  fail(filename);
 	
-	int total = 0, passed = 0;
-	int total_opt = 0, passed_opt = 0;
+	//int total = 0, passed = 0;
+	//int total_opt = 0, passed_opt = 0;
 	
 	struct board *b = board_init(NULL);
-	b->komi = 7.5;
+	b->komi = 0.5;
 	char buf[256]; char *line = buf;
 
 	while (fgets(line, sizeof(buf), f)) {
@@ -601,15 +636,44 @@ unit_test(char *filename)
 			case  0 : continue;
 		}
 		
-		if (!strncmp(line, "boardsize ", 10))  {  board_load(b, f, atoi(line + 10)); continue;  }
-		if (!strncmp(line, "ko ", 3))	       {  set_ko(b, line + 3); continue;  }
+		if (!strncmp(line, "height ", 7))  {
+			int height = atoi(line + 7);
+			printf("height: %i\n", height);
 
-		if (optional)  {  total_opt++;  passed_opt += unit_test_cmd(b, line); }
-		else           {  total++;      passed     += unit_test_cmd(b, line); }
+			/* read width */
+			fgets(line, sizeof(buf), f);
+			assert(!strncmp(line, "width ", 6));
+			int width = atoi(line + 6);
+			printf("width: %i\n", width);
+			assert(width == height);
+
+			/* player to move */
+			fgets(line, sizeof(buf), f);
+			assert(!strncmp(line, "player_to_move ", 15));
+			int player_to_move = atoi(line + 15);
+			printf("player to move: %i\n", player_to_move);
+			assert(player_to_move == 1 || player_to_move == -1);
+			enum stone to_play = (player_to_move == 1 ? S_BLACK : S_WHITE);
+			
+			// XXX handicap, komi ??
+
+			board_load(b, f, height);
+			pick_random_last_move(b, to_play);
+			continue;
+		}
+		//if (!strncmp(line, "ko ", 3))	   {  set_ko(b, line + 3); continue;  }
+
+		//if (optional)  {  total_opt++;  passed_opt += unit_test_cmd(b, line); }
+		//else           {  total++;      passed     += unit_test_cmd(b, line); }
+		die("Syntax error: %s\n", line);
 	}
+
+	char arg[128] = "C4 X";  next = arg;
+	test_moggy_status(b, arg);
 
 	fclose(f);
 
+#if 0
 	printf("\n\n");
 	printf("----------- [  %3i/%-3i mandatory tests passed (%i%%)  ] -----------\n", passed, total, passed * 100 / total);
 	if (total_opt)
@@ -622,4 +686,6 @@ unit_test(char *filename)
 		printf(", %d optional test(s) IGNORED", total_opt - passed_opt);
 	printf("\n");
 	return ret;
+#endif
+	return 0;
 }

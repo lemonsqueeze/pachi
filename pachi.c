@@ -31,7 +31,7 @@
 #include "dcnn.h"
 #include "caffe.h"
 
-int debug_level = 3;
+int debug_level = 2;
 bool debug_boardprint = true;
 long verbose_logs = 0;
 int seed;
@@ -79,6 +79,9 @@ init_engine(enum engine_id engine, char *e_arg, struct board *b)
 static void
 usage()
 {
+	fprintf(stderr, "usage: estimator file.game\n");
+
+#if 0
 	fprintf(stderr, "Usage: pachi [OPTIONS] [ENGINE_ARGS]\n\n");
 	fprintf(stderr,
 		"Options: \n"
@@ -121,6 +124,7 @@ usage()
 		"                  pachi -t 20               20s per move \n"
 		"                  pachi -t _600             10min game, sudden death \n"
 		" \n");
+#endif
 }
 
 static void
@@ -280,6 +284,13 @@ int main(int argc, char *argv[])
 				die("Invalid argument: %s\n"
 				    "Try 'pachi --help' for more information.\n", argv[optind-1]);
 		}
+	}
+
+	{
+		char *e_arg = NULL;
+		if (optind < argc)	e_arg = argv[optind];
+		if (!e_arg)  {  usage(); exit(1);  }
+		return unit_test(e_arg);
 	}
 
 	fast_srandom(seed);
