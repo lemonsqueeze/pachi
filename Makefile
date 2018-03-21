@@ -27,7 +27,7 @@
 # You'll need to install Boost and Caffe libraries.
 # If Caffe is in a custom directory you can set it here.
 
-DCNN=1
+# DCNN=1
 # CAFFE_PREFIX=/usr/local/caffe
 
 # Fixed board size. Set this to enable more aggressive optimizations
@@ -228,7 +228,7 @@ DATAFILES = patterns.prob patterns.spat book.dat golast19.prototxt golast.traine
 # you expect for example (use 'make OPT=-O0 BOARD_SIZE=19' instead)
 
 all: build.h
-	+@make all-recursive pachi
+	+@make all-recursive estimator
 
 debug fast quick O0:
 	+@make OPT=-O0
@@ -258,7 +258,7 @@ LOCALLIBS=$(SUBDIRS:%=%/lib.a)
 $(LOCALLIBS): all-recursive
 	@
 
-pachi: $(OBJS) $(LOCALLIBS)
+estimator: $(OBJS) $(LOCALLIBS)
 	$(call cmd,link)
 
 # Use runtime gcc profiling for extra optimization. This used to be a large
