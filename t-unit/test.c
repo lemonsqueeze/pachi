@@ -470,6 +470,8 @@ game_safe_to_score(struct board *b, struct board_ownermap *ownermap, float score
 	return true;
 }
 
+int estimator_simulations = 1000;
+
 /* Play a number of playouts, show ownermap and stats on final status of given coord(s)
  * Board last move matters quite a lot and must be set.
  *
@@ -482,7 +484,7 @@ game_safe_to_score(struct board *b, struct board_ownermap *ownermap, float score
 static bool
 test_moggy_status(struct board *b, char *arg)
 {
-	int games = 500;
+	int games = estimator_simulations;
 	coord_t              status_at[10];
 	enum point_judgement expected[10];
 	int                  thres[10];
