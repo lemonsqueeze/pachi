@@ -19,6 +19,7 @@
 #include "playout/moggy.h"
 #include "engines/replay.h"
 #include "ownermap.h"
+#include "mq.h"
 
 /* Running tests over gtp ? */
 static bool tunit_over_gtp = 1;
@@ -429,6 +430,46 @@ test_moggy_moves(struct board *b, char *arg)
 	return true;   // Not much of a unit test right now =)
 }
 
+static void
+get_dead_groups(struct board *b, struct board_ownermap *ownermap,
+		struct move_queue *dead, struct move_queue *unclear)
+{
+	enum gj_state gs_array[board_size2(b)];
+	struct group_judgement gj = { .thres = 0.67, .gs = gs_array };
+	board_ownermap_judge_groups(b, ownermap, &gj);
+	dead->moves = unclear->moves = 0;
+	groups_of_status(b, &gj, GS_DEAD, dead);
+	groups_of_status(b, &gj, GS_UNKNOWN, unclear);
+}
+
+/* Check position is final and safe to score:
+ * No unclear groups and official score and score est agree. */
+static bool
+game_safe_to_score(struct board *b, struct board_ownermap *ownermap, float score_est, char **msg)
+{
+	struct move_queue unclear;
+	struct move_queue dead;
+	get_dead_groups(b, ownermap, &dead, &unclear);
+	
+	/* Unclear groups ? */
+	*msg = "unclear groups";
+	if (unclear.moves)  return false;
+	
+	int dame;
+	floating_t score = board_official_score_and_dame(b, &dead, &dame);
+	//fprintf(stderr, "pass_is_safe():  %d score %f   dame: %i\n", color, score, dame);
+
+	/* Don't go to counting if position is not final.
+	 * If ownermap and official score disagree position is likely not final.
+	 * If too many dames also. */
+	*msg = "score est and official score don't agree";
+	if (score != score_est)  return false;
+	*msg = "too many dames";
+	if (dame > 20)	              return false;
+	
+	return true;
+}
+
 /* Play a number of playouts, show ownermap and stats on final status of given coord(s)
  * Board last move matters quite a lot and must be set.
  *
@@ -506,9 +547,14 @@ test_moggy_status(struct board *b, char *arg)
 	if (DEBUGL(2)) board_print_ownermap(b, stderr, &ownermap);
 	board_print_ownermap_ogs(b, stdout, &ownermap);	
 
-	float score = -board_ownermap_score_est(b, &ownermap);
-	printf("Score: %f\n", score);
+	float score_est = board_ownermap_score_est(b, &ownermap);
+	printf("Score: %f\n", -score_est);
 	printf("Time elapsed: %f ms\n", elapsed * 1000);
+
+	char *msg;
+	bool safe_to_score = game_safe_to_score(b, &ownermap, score_est, &msg);
+	if (safe_to_score)  printf("Safe to score: %i\n", safe_to_score);
+	else                printf("Safe to score: %i (%s)\n", safe_to_score, msg);
 
 	/* Check results */
 	bool ret = true;
