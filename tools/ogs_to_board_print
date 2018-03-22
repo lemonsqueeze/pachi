@@ -1,0 +1,6 @@
+#!/bin/bash
+# Convert ogs estimator file.game to ascii board diagram
+# Usage: ogs_to_board_print file.game
+
+./estimator -d 3 "$@" > /dev/null 2>/tmp/err 
+cat /tmp/err | grep -B 30 -m 1 '^$'
