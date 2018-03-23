@@ -3,17 +3,17 @@ Testing on ogs estimator test suite:
   t-ogs/sgf/*.sgf
 
                              (* = not safe      
-                                  to score)
-file              manual    pachi estimator   ogs estimator
-                  score                    
--------------------------------------------------------------
+                                  to score)             
+file              manual         pachi            ogs   
+                  score        estimator       estimator
+--------------------------------------------------------
 1776378.game      W+7.5         -7.5             -7.5
 2686282.game      B+40.5         40.5            40.5
 2686658.game      B+40.5         32.5 *           8.5
 2695200.game      B+32.5         32.5           -26.5
 2697990.game      B+48.5         32.5 *          -0.5
 2704027.game      W+33.5        -23.5 *          10.5
-2733454.game      W+54.5        -28.5 *         -25.5
+2733454.game      W+25.5        -28.5 *         -25.5
 2733986.game      B+68.5         68.5            54.5
 2743191.game      B+42.5         42.5            -1.5
 2765606.game      B+126.5        85.5 *          49.5
@@ -26,7 +26,7 @@ file              manual    pachi estimator   ogs estimator
 2927622.game      B+18.5         18.5            -2.5
 3029489.game      W+11.5        -11.5            26.5
 3085363.game      W+5.5         -33.5 *         -68.5
-3190829.game      B+50.5        -15.5 *          53.5
+3190829.game      W+37.5        -15.5 *          53.5
 3227995.game      W+21.5         -5.5 *           2.5
 3245224.game      W+95.5        -73.5 *         -53.5
 3247364.game      B+12.5         12.5             1.5
@@ -39,4 +39,5 @@ file              manual    pachi estimator   ogs estimator
 3941535.game      B+12.5         12.5            40.5
 3962847.game      W+61.5        -61.5           -14.5
 
-total: 31 games                 21/31 ok       2/31 ok
+total: 31 games                 21/31 ok       3/31 ok
+
