@@ -598,6 +598,15 @@ cmd_pachi_tunit(struct board *board, struct engine *engine, struct time_info *ti
 }
 
 static enum parse_code
+cmd_estimator(struct board *board, struct engine *engine, struct time_info *ti, gtp_t *gtp)
+{
+	gtp_reply(gtp, NULL);
+	char cmd[128] = "moggy status C4 X";
+	unit_test_cmd(board, cmd);
+	return P_OK;
+}
+
+static enum parse_code
 cmd_kgs_chat(struct board *board, struct engine *engine, struct time_info *ti, gtp_t *gtp)
 {
 	char *loc;
@@ -713,6 +722,8 @@ static gtp_command_t commands[] =
 	{ "kgs-time_settings",      cmd_kgs_time_settings },
 	{ "kgs-chat",               cmd_kgs_chat },
 
+	{ "ogs-estimator",          cmd_estimator },
+
 	{ "pachi-predict",          cmd_pachi_predict },
 	{ "pachi-tunit",            cmd_pachi_tunit },
 	{ "pachi-genmoves",         cmd_pachi_genmoves },
@@ -738,6 +749,7 @@ static gtp_command_t commands[] =
 	{ "gogui-dcnn_rating",      cmd_gogui_dcnn_rating },
 #endif /* DCNN */
 	{ "gogui-color_palette",    cmd_gogui_color_palette },
+
 
 	{ 0, 0 }
 };

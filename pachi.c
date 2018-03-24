@@ -30,7 +30,7 @@
 #include "dcnn.h"
 #include "caffe.h"
 
-int debug_level = 2;
+int debug_level = 0;
 bool debug_boardprint = true;
 long verbose_logs = 0;
 int seed;
@@ -78,7 +78,9 @@ init_engine(enum engine_id engine, char *e_arg, struct board *b)
 static void
 usage()
 {
-	fprintf(stderr, "usage: estimator [-n sims] [-d debug_level] file.game\n");
+	fprintf(stderr, "usage: estimator [-n sims] [-d debug_level] file.game  \n");
+	fprintf(stderr, "       estimator [-n sims] [-d debug_level] --gtp      \n\n");
+	fprintf(stderr, "in gtp mode, use 'ogs-estimator' command to start estimator.\n");
 
 #if 0
 	fprintf(stderr, "Usage: pachi [OPTIONS] [ENGINE_ARGS]\n\n");
@@ -146,6 +148,7 @@ show_version(FILE *s)
 #define OPT_NO_DCNN       257
 #define OPT_VERBOSE_CAFFE 258
 #define OPT_COMPILE_FLAGS 259
+#define OPT_ESTIMATOR_GTP 260
 static struct option longopts[] = {
 	{ "fuseki-time", required_argument, 0, OPT_FUSEKI_TIME },
 	{ "chatfile",    required_argument, 0, 'c' },
@@ -153,6 +156,7 @@ static struct option longopts[] = {
 	{ "debug-level", required_argument, 0, 'd' },
 	{ "engine",      required_argument, 0, 'e' },
 	{ "fbook",       required_argument, 0, 'f' },
+	{ "gtp",         no_argument,       0, OPT_ESTIMATOR_GTP },
 	{ "gtp-port",    required_argument, 0, 'g' },
 	{ "help",        no_argument,       0, 'h' },
 	{ "log-file",    required_argument, 0, 'o' },
@@ -180,6 +184,7 @@ int main(int argc, char *argv[])
 	char *ruleset = NULL;
 	FILE *file = NULL;
 	bool verbose_caffe = false;
+	int estimator_gtp_mode = 0;
 
 	setlinebuf(stdout);
 	setlinebuf(stderr);
@@ -223,6 +228,9 @@ int main(int argc, char *argv[])
 				break;
 			case 'f':
 				fbookfile = strdup(optarg);
+				break;
+			case OPT_ESTIMATOR_GTP:
+				estimator_gtp_mode = 1;
 				break;
 			case 'g':
 				gtp_port = strdup(optarg);
@@ -289,13 +297,13 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	if (!estimator_gtp_mode)
 	{
 		char *e_arg = NULL;
 		if (optind < argc)	e_arg = argv[optind];
 		if (!e_arg)  {  usage(); exit(1);  }
 		return unit_test(e_arg);
 	}
-	/* not reached */
 
 	fast_srandom(seed);
 	
