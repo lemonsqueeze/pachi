@@ -451,21 +451,22 @@ game_safe_to_score(struct board *b, struct board_ownermap *ownermap, float score
 	struct move_queue dead;
 	get_dead_groups(b, ownermap, &dead, &unclear);
 	
+	int dame;
+	floating_t score = board_official_score_and_dame(b, &dead, &dame);
+	printf("Official score: %f\n", -score);
+	printf("Dames: %i\n", dame);
+
 	/* Unclear groups ? */
 	*msg = "unclear groups";
 	if (unclear.moves)  return false;
 	
-	int dame;
-	floating_t score = board_official_score_and_dame(b, &dead, &dame);
-	//fprintf(stderr, "pass_is_safe():  %d score %f   dame: %i\n", color, score, dame);
-
 	/* Don't go to counting if position is not final.
 	 * If ownermap and official score disagree position is likely not final.
 	 * If too many dames also. */
+	*msg = "too many dames";
+	if (dame > 20)	         return false;
 	*msg = "score est and official score don't agree";
 	if (score != score_est)  return false;
-	*msg = "too many dames";
-	if (dame > 20)	              return false;
 	
 	return true;
 }
