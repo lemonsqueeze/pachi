@@ -53,13 +53,8 @@ board_print_ownermap_ogs(struct board *b, FILE *f, struct board_ownermap *ownerm
 			coord_t c = coord_xy(b, x, y);
 			
 			const char chr[] = " o_ "; // dame, black, white, unclear
-			const char chm[] = " o_ ";
-			char ch = chr[board_ownermap_judge_point(ownermap, c, GJ_THRES)];
-			if (ch == ',') // less precise estimate then?
-				ch = chm[board_ownermap_judge_point(ownermap, c, 0.67)];
-
-			fprintf(f, "%c", ch);
-			/* if (x != board_size(b) - 2) */  fprintf(f, " ");
+			char ch = chr[board_ownermap_judge_point(ownermap, c, 0.67)];
+			fprintf(f, "%c ", ch);
 		}
 		fprintf(f, "\n");
 	}
