@@ -429,8 +429,26 @@ test_moggy_moves(struct board *b, char *arg)
 	return true;   // Not much of a unit test right now =)
 }
 
+#define board_empty(b) ((b)->flen == real_board_size(b) * real_board_size(b))
 
-int estimator_simulations = 1000;
+static void
+pick_random_last_move(struct board *b, enum stone to_play)
+{
+        if (board_empty(b))
+                return;
+        
+        int base = fast_random(board_size2(b));
+        for (int i = base; i < base + board_size2(b); i++) {
+                coord_t c = i % board_size2(b);
+                if (board_at(b, c) == stone_other(to_play)) {
+                        b->last_move.coord = c;
+                        b->last_move.color = board_at(b, c);
+                        break;
+                }
+        }       
+}
+
+int estimator_simulations = 4000;
 
 /* Play a number of playouts, show ownermap and stats on final status of given coord(s)
  * Board last move matters quite a lot and must be set.
@@ -491,7 +509,8 @@ test_moggy_status(struct board *b, char *arg)
 	for (int i = 0; i < games; i++)  {
 		struct board b2;
 		board_copy(&b2, b);
-		
+
+		pick_random_last_move(&b2, color);
 		int score = play_random_game(&setup, &b2, color, NULL, &ownermap, policy);
 		if (color == S_WHITE)
 			score = -score;
@@ -588,25 +607,6 @@ unit_test_cmd(struct board *b, char *line)
 	die("Syntax error: %s\n", line);
 }
 
-#define board_empty(b) ((b)->flen == real_board_size(b) * real_board_size(b))
-
-static void
-pick_random_last_move(struct board *b, enum stone to_play)
-{
-        if (board_empty(b))
-                return;
-        
-        int base = fast_random(board_size2(b));
-        for (int i = base; i < base + board_size2(b); i++) {
-                coord_t c = i % board_size2(b);
-                if (board_at(b, c) == stone_other(to_play)) {
-                        b->last_move.coord = c;
-                        b->last_move.color = board_at(b, c);
-                        break;
-                }
-        }       
-}
-
 int
 unit_test(char *filename)
 {
@@ -661,7 +661,6 @@ unit_test(char *filename)
 			// XXX handicap, komi ??
 
 			board_load(b, f, height);
-			pick_random_last_move(b, to_play);
 			continue;
 		}
 		//if (!strncmp(line, "ko ", 3))	   {  set_ko(b, line + 3); continue;  }
