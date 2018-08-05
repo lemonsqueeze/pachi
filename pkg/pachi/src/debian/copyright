@@ -3,11 +3,11 @@ Upstream-Name: pachi
 Source: http://pachi.or.cz
 
 Files: *
-Copyright: 2007-2017 Petr Baudis <pasky@ucw.cz>           
+Copyright: 2007-2018 Petr Baudis <pasky@ucw.cz>           
            2010-2012 Jean-loup Gailly <jloup@gailly.net>
            2012-2015 Joe Moudrik <j.moudrik@gmail.com>
            2013-2016 Stanislaw Halik <sthalik@misaki.pl>
-	   2016-2017 lemonsqueeze <lemonsqueeze@gmx.com>
+	   2016-2018 lemonsqueeze <lemonsqueeze@gmx.com>
            2012      Neil Mclean <mclean.neil@gmail.com>
            2016      Jirka Daněk <dnk@mail.muni.cz>
 

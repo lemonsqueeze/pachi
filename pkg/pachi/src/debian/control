@@ -16,12 +16,12 @@ Build-Depends: debhelper (>= 8.0.0),
                libopenblas-dev
 Standards-Version: 3.9.4
 Homepage: http://pachi.or.cz/
-Vcs-Git: https://github.com/lemonsqueeze/pachi.git
-Vcs-Browser: https://github.com/lemonsqueeze/pachi
+Vcs-Git: https://github.com/pasky/pachi.git
+Vcs-Browser: https://github.com/pasky/pachi
 
 Package: pachi-go
 Architecture: any
-Depends: pachi-go-data, ${shlibs:Depends}, ${misc:Depends}
+Depends: pachi-go-data (>= 12.10), ${shlibs:Depends}, ${misc:Depends}
 Description: engine for the game of go / weiqi / baduk
  Pachi is a reasonably strong engine for the ancient game of go
  (http://senseis.xmp.net/?Go)

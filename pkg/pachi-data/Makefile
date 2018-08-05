@@ -12,8 +12,8 @@
 
 
 # Debian package name
-BASE=pachi-go-data_12.00
-NAME=pachi-go-data_12.00-1
+BASE=pachi-go-data_12.10
+NAME=pachi-go-data_12.10-1
 
 
 ################################################################
@@ -43,10 +43,9 @@ $(BASE).orig.tar.xz:
 copy-data-files:
 	cp -p ../../golast.trained     src/
 	cp -p ../../golast19.prototxt  src/
-	cp -p ../../joseki19.pdict     src/
 	cp -p ../../opening.dat        src/
-	cp -p ../../patterns.prob      src/
-	cp -p ../../patterns.spat      src/
+	cp -p ../../patterns_mm.gamma  src/
+	cp -p ../../patterns_mm.spat   src/
 
 
 ################################################################
