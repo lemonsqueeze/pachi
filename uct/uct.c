@@ -95,17 +95,6 @@ uct_prepare_move(struct uct *u, struct board *b, enum stone color)
 	u->played_own = u->played_all = 0;
 }
 
-static void
-get_dead_groups(struct uct *u, struct board *b, struct move_queue *dead, struct move_queue *unclear)
-{
-	enum gj_state gs_array[board_size2(b)];
-	struct group_judgement gj = { .thres = 0.67, .gs = gs_array };
-	ownermap_judge_groups(b, &u->ownermap, &gj);
-	dead->moves = unclear->moves = 0;
-	groups_of_status(b, &gj, GS_DEAD, dead);
-	groups_of_status(b, &gj, GS_UNKNOWN, unclear);
-}
-
 /* Do we win counting, considering that given groups are dead ?
  * Assumes ownermap is well seeded. */
 static bool
@@ -120,40 +109,11 @@ pass_is_safe(struct uct *u, struct board *b, enum stone color, struct move_queue
 	//board_print_official_ownermap(b, final_ownermap);
 
 	/* Don't go to counting if position is not final.
-	 * Non-seki dames surrounded by only dames / border / one color are no dame to me,
-	 * most likely some territories are still open ... */
-	foreach_point(b) {
-		if (board_at(b, c) == S_OFFBOARD) continue;
-		if (final_ownermap[c] != 3)  continue;
-		if (ownermap_judge_point(&u->ownermap, c, GJ_THRES) == PJ_DAME) continue;
-
-		coord_t dame = c;
-		int around[4] = { 0, };
-		foreach_neighbor(b, dame, {
-			around[final_ownermap[c]]++;
-		});		
-		if (around[S_BLACK] + around[3] == 4 ||
-		    around[S_WHITE] + around[3] == 4 )  {
-			static char buf[100];
-			sprintf(buf, "non-final position at %s", coord2sstr(dame, b));
-			*msg = buf;
-			return false;
-		}
-	} foreach_point_end;	
-
-	/* If ownermap and official score disagree position is likely not final.
-	 * If too many dames also. */
-	if (!pass_all_alive) {
-		int max_dames = (board_large(b) ? 20 : 7);
-		*msg = "too many dames";
-		if (dames > max_dames)    return false;
-
-		/* Can disagree up to dame points, as long as there are not too many.
-		 * For example a 1 point difference with 1 dame is quite usual... */
-		int max_diff = MIN(dames, 4);
-		*msg = "score est and official score don't agree";
-		if (fabs(score - score_est) > max_diff)  return false;
-	}
+	 * Skip extra checks for pass_all_alive in case there are
+	 * positions which don't pass them (too many sekis for example). */
+	if (!board_position_final_full(b, &u->ownermap, dead, score_est,
+				       final_ownermap, dames, score, msg, !pass_all_alive))
+		return false;
 	
 	*msg = "losing on official score";
 	return (score >= 0);
@@ -169,7 +129,7 @@ uct_pass_is_safe(struct uct *u, struct board *b, enum stone color, bool pass_all
 	struct move_queue unclear;
 	struct move_queue *dead = &u->dead_groups;
 	u->pass_moveno = b->moves + 1;
-	get_dead_groups(u, b, dead, &unclear);
+	get_dead_groups(b, &u->ownermap, dead, &unclear);
 	
 	/* Unclear groups ? */
 	*msg = "unclear groups";
@@ -371,8 +331,7 @@ uct_dead_group_list(struct engine *e, struct board *b, struct move_queue *dead)
 	uct_mcowner_playouts(u, b, S_BLACK);
 	if (DEBUGL(2))  board_print_ownermap(b, stderr, &u->ownermap);
 
-	struct move_queue unclear;
-	get_dead_groups(u, b, dead, &unclear);
+	get_dead_groups(b, &u->ownermap, dead, NULL);
 	print_dead_groups(u, b, dead);
 }
 

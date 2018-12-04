@@ -56,6 +56,8 @@ enum stone ownermap_color(struct ownermap *ownermap, coord_t c, floating_t thres
 /* Coord's status from 1.0 (black) to 0.0 (white) */
 float ownermap_estimate_point(struct ownermap *ownermap, coord_t c);
 
+/* Find dead / unclear groups. */
+void get_dead_groups(struct board *b, struct ownermap *ownermap, struct move_queue *dead, struct move_queue *unclear);
 /* Estimate status of stones on board based on ownermap stats. */
 void ownermap_judge_groups(struct board *b, struct ownermap *ownermap, struct group_judgement *judge);
 /* Add groups of given status to mq. */
@@ -67,5 +69,12 @@ float ownermap_score_est(struct board *b, struct ownermap *ownermap);
 float ownermap_score_est_color(struct board *b, struct ownermap *ownermap, enum stone color);
 char *ownermap_score_est_str(struct board *b, struct ownermap *ownermap);
 enum point_judgement ownermap_score_est_coord(struct board *b, struct ownermap *ownermap, coord_t c);
+
+/* Is board position final ? */
+bool board_position_final(struct board *b, struct ownermap *ownermap, char **msg);
+bool board_position_final_full(struct board *b, struct ownermap *ownermap,
+			       struct move_queue *dead, float score_est,
+			       int *final_ownermap, int final_dames, float final_score,
+			       char **msg, bool extra_checks);
 
 #endif
