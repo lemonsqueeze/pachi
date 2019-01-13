@@ -1200,7 +1200,7 @@ board_play_(struct board *board, struct move *m, struct board_undo *u)
 #ifdef BOARD_UNDO_CHECKS
 	assert(u || !board->quicked);
 #endif
-	assert(!is_resign(m->coord));
+	assert(!is_resign(m->coord));  // XXX remove
 
 	if (u) undo_init(board, m, u);
 	
