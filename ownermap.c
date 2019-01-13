@@ -235,6 +235,20 @@ board_position_final_full(struct board *b, struct ownermap *ownermap,
 			  int *final_ownermap, int final_dames, float final_score,
 			  char **msg, bool extra_checks)
 {
+	/* Check border stones in atari. */
+	foreach_point(b) {
+		group_t g = group_at(b, c);
+		if (!g || board_group_info(b, g).libs > 1)  continue;
+		enum stone color = board_at(b, c);
+		if (final_ownermap[c] != (int)color)  continue;
+		coord_t coord = c;
+		foreach_neighbor(b, coord, {
+			if (final_ownermap[c] != (int)stone_other(color))  continue;
+			*msg = "border stones in atari";
+			return false;
+		});
+	} foreach_point_end;
+
 	/* Non-seki dames surrounded by only dames / border / one color are no dame to me,
 	 * most likely some territories are still open ... */
 	foreach_point(b) {
@@ -254,7 +268,7 @@ board_position_final_full(struct board *b, struct ownermap *ownermap,
 			*msg = buf;
 			return false;
 		}
-	} foreach_point_end;	
+	} foreach_point_end;
 
 	/* If ownermap and official score disagree position is likely not final.
 	 * If too many dames also. */
