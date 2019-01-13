@@ -216,8 +216,8 @@ ownermap_score_est_str(struct board *b, struct ownermap *ownermap)
 bool
 board_position_final(struct board *b, struct ownermap *ownermap, char **msg)
 {
-	struct move_queue dead;
-	get_dead_groups(b, ownermap, &dead, NULL);
+	struct move_queue dead, unclear;
+	get_dead_groups(b, ownermap, &dead, &unclear);
 	
 	floating_t score_est = ownermap_score_est(b, ownermap);
 
@@ -225,17 +225,21 @@ board_position_final(struct board *b, struct ownermap *ownermap, char **msg)
 	int final_ownermap[board_size2(b)];
 	floating_t final_score = board_official_score_details(b, &dead, &final_dames, final_ownermap);
 
-	return board_position_final_full(b, ownermap, &dead, score_est,
+	return board_position_final_full(b, ownermap, &dead, &unclear, score_est,
 					 final_ownermap, final_dames, final_score, msg, true);
 }
 
 bool
 board_position_final_full(struct board *b, struct ownermap *ownermap,
-			  struct move_queue *dead, float score_est,
+			  struct move_queue *dead, struct move_queue *unclear, float score_est,
 			  int *final_ownermap, int final_dames, float final_score,
 			  char **msg, bool extra_checks)
 {
-	/* Check border stones in atari. */
+	/* Unclear groups ? */
+	*msg = "unclear groups";
+	if (unclear->moves)  return false;
+
+	/* Border stones in atari ? */
 	foreach_point(b) {
 		group_t g = group_at(b, c);
 		if (!g || board_group_info(b, g).libs > 1)  continue;

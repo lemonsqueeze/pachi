@@ -73,7 +73,7 @@ enum point_judgement ownermap_score_est_coord(struct board *b, struct ownermap *
 /* Is board position final ? */
 bool board_position_final(struct board *b, struct ownermap *ownermap, char **msg);
 bool board_position_final_full(struct board *b, struct ownermap *ownermap,
-			       struct move_queue *dead, float score_est,
+			       struct move_queue *dead, struct move_queue *unclear, float score_est,
 			       int *final_ownermap, int final_dames, float final_score,
 			       char **msg, bool extra_checks);
 

@@ -98,7 +98,7 @@ uct_prepare_move(struct uct *u, struct board *b, enum stone color)
 /* Do we win counting, considering that given groups are dead ?
  * Assumes ownermap is well seeded. */
 static bool
-pass_is_safe(struct uct *u, struct board *b, enum stone color, struct move_queue *dead,
+pass_is_safe(struct uct *u, struct board *b, enum stone color, struct move_queue *dead, struct move_queue *unclear,
 	     float score_est, bool pass_all_alive, char **msg)
 {
 	int dames;
@@ -111,7 +111,7 @@ pass_is_safe(struct uct *u, struct board *b, enum stone color, struct move_queue
 	/* Don't go to counting if position is not final.
 	 * Skip extra checks for pass_all_alive in case there are
 	 * positions which don't pass them (too many sekis for example). */
-	if (!board_position_final_full(b, &u->ownermap, dead, score_est,
+	if (!board_position_final_full(b, &u->ownermap, dead, unclear, score_est,
 				       final_ownermap, dames, score, msg, !pass_all_alive))
 		return false;
 	
@@ -130,10 +130,6 @@ uct_pass_is_safe(struct uct *u, struct board *b, enum stone color, bool pass_all
 	struct move_queue *dead = &u->dead_groups;
 	u->pass_moveno = b->moves + 1;
 	get_dead_groups(b, &u->ownermap, dead, &unclear);
-	
-	/* Unclear groups ? */
-	*msg = "unclear groups";
-	if (unclear.moves)  return false;
 	
 	if (pass_all_alive) {
 		*msg = "need to remove opponent dead groups first";
@@ -158,7 +154,7 @@ uct_pass_is_safe(struct uct *u, struct board *b, enum stone color, bool pass_all
 	floating_t score = ownermap_score_est_color(b, &u->ownermap, color);
 	if (score < 0)  return false;
 
-	return pass_is_safe(u, b, color, dead, score, pass_all_alive, msg);
+	return pass_is_safe(u, b, color, dead, &unclear, score, pass_all_alive, msg);
 }
 
 static void
