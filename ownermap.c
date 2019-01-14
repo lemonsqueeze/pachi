@@ -216,6 +216,10 @@ ownermap_score_est_str(struct board *b, struct ownermap *ownermap)
 bool
 board_position_final(struct board *b, struct ownermap *ownermap, char **msg)
 {
+	*msg = "too early to pass";
+	if (b->moves < board_earliest_pass(b))
+		return false;
+	
 	struct move_queue dead, unclear;
 	get_dead_groups(b, ownermap, &dead, &unclear);
 	
@@ -235,6 +239,10 @@ board_position_final_full(struct board *b, struct ownermap *ownermap,
 			  int *final_ownermap, int final_dames, float final_score,
 			  char **msg, bool extra_checks)
 {
+	*msg = "too early to pass";
+	if (b->moves < board_earliest_pass(b))
+		return false;
+	
 	/* Unclear groups ? */
 	*msg = "unclear groups";
 	if (unclear->moves)  return false;

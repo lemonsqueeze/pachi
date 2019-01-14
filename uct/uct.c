@@ -101,6 +101,11 @@ uct_prepare_move(struct uct *u, struct board *b, enum stone color)
 bool
 uct_pass_is_safe(struct uct *u, struct board *b, enum stone color, bool pass_all_alive, char **msg)
 {
+	/* Check this early, no need to go through the whole thing otherwise. */
+	*msg = "too early to pass";
+	if (b->moves < board_earliest_pass(b))
+		return false;
+	
 	/* Make sure enough playouts are simulated to get a reasonable dead group list. */
 	uct_mcowner_playouts(u, b, color);
 

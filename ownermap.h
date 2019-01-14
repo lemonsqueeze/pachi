@@ -77,4 +77,9 @@ bool board_position_final_full(struct board *b, struct ownermap *ownermap,
 			       int *final_ownermap, int final_dames, float final_score,
 			       char **msg, bool extra_checks);
 
+/* Don't allow passing earlier than that:
+ * 19x19: 120    15x15: 56    13x13: 33    9x9: 16 */
+#define board_earliest_pass(b)  (real_board_size2(b) / (7 - 2 * real_board_size(b) / 9))
+
+
 #endif
