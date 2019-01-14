@@ -95,30 +95,9 @@ uct_prepare_move(struct uct *u, struct board *b, enum stone color)
 	u->played_own = u->played_all = 0;
 }
 
-/* Do we win counting, considering that given groups are dead ?
- * Assumes ownermap is well seeded. */
-static bool
-pass_is_safe(struct uct *u, struct board *b, enum stone color, struct move_queue *dead, struct move_queue *unclear,
-	     float score_est, bool pass_all_alive, char **msg)
-{
-	int dames;
-	int final_ownermap[board_size2(b)];
-	floating_t score = board_official_score_details(b, dead, &dames, final_ownermap); 
-	if (color == S_BLACK)  score = -score;
-	//fprintf(stderr, "pass_is_safe():  %d score %f   dame: %i\n", color, score, dame);
-	//board_print_official_ownermap(b, final_ownermap);
-
-	/* Don't go to counting if position is not final.
-	 * Skip extra checks for pass_all_alive in case there are
-	 * positions which don't pass them (too many sekis for example). */
-	if (!board_position_final_full(b, &u->ownermap, dead, unclear, score_est,
-				       final_ownermap, dames, score, msg, !pass_all_alive))
-		return false;
-	
-	*msg = "losing on official score";
-	return (score >= 0);
-}
-
+/* Does the board look like a final position ?
+ * And do we win counting, considering that given groups are dead ?
+ * (if allow_losing_pass wasn't set) */
 bool
 uct_pass_is_safe(struct uct *u, struct board *b, enum stone color, bool pass_all_alive, char **msg)
 {
@@ -138,23 +117,27 @@ uct_pass_is_safe(struct uct *u, struct board *b, enum stone color, bool pass_all
 				return false;
 		dead->moves = 0; // our dead stones are alive when pass_all_alive is true
 	}
-	
-	if (u->allow_losing_pass) {
-		*msg = "unclear point, clarify first";
-		foreach_point(b) {
-			if (board_at(b, c) == S_OFFBOARD)  continue;
-			if (ownermap_judge_point(&u->ownermap, c, GJ_THRES) == PJ_UNKNOWN)
-				return false;
-		} foreach_point_end;
-		return true;
-	}
 
 	/* Check score estimate first, official score is off if position is not final */
 	*msg = "losing on score estimate";
-	floating_t score = ownermap_score_est_color(b, &u->ownermap, color);
-	if (score < 0)  return false;
-
-	return pass_is_safe(u, b, color, dead, &unclear, score, pass_all_alive, msg);
+	bool check_score = !u->allow_losing_pass;
+	floating_t score_est = ownermap_score_est_color(b, &u->ownermap, color);
+	if (check_score && score_est < 0)  return false;
+	
+	int final_ownermap[board_size2(b)];
+	int dames;
+	floating_t final_score = board_official_score_details(b, dead, &dames, final_ownermap); 
+	if (color == S_BLACK)  final_score = -final_score;
+	
+	/* Don't go to counting if position is not final.
+	 * Skip extra checks for pass_all_alive in case there are
+	 * positions which don't pass them (too many sekis for example). */
+	if (!board_position_final_full(b, &u->ownermap, dead, &unclear, score_est,
+				       final_ownermap, dames, final_score, msg, !pass_all_alive))
+		return false;
+	
+	*msg = "losing on official score";
+	return (check_score ? final_score >= 0 : true);
 }
 
 static void
