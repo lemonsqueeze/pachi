@@ -121,7 +121,7 @@ usage()
 		"      --patterns, --nopatterns      mm patterns required / disabled \n"
 		"      --joseki,   --nojoseki        joseki engine required / disabled \n"
 		" \n"
-		"TIME_SETTINGS: \n"
+		"Time settings: \n"
 		"  =SIMS           fixed number of Monte-Carlo simulations per move \n"
 		"                  Pachi will play fast on a fast computer, slow on a slow computer, \n"
 		"                  but strength will remain the same. \n"
@@ -132,10 +132,15 @@ usage()
 		"                  unexpected slowdowns. This is the same as one-period japanese byoyomi. \n"
 		"  _SECS           absolute time: use fixed number of seconds for the whole game\n"
 		" \n"
-		"  Examples:       pachi -t =5000            5000 simulations per move \n"
-		"                  pachi -t =5000:15000      max 15000 simulations per move \n"
-		"                  pachi -t 20               20s per move \n"
-		"                  pachi -t _600             10min game, sudden death \n"
+		"Engine args: \n"
+		"  Comma separated engine specific options, as in:\n"
+		"      pachi --nodcnn threads=8,max_tree_size=3072,pondering \n"
+		"  See each engine for details. Most common options for uct: \n"
+		"\n"
+		"      max_tree_size=100             use up to 100 Mb of memory for tree search \n"
+		"      resign_threshold=0.25         resign if winrate < 25%% (default: 20%%) \n"
+		"      threads=4                     use 4 threads for tree search (default: #cores) \n"
+		"      pondering                     think during opponent turn (nodcnn only, default: no) \n"
 		" \n");
 }
 
