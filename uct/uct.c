@@ -427,10 +427,15 @@ uct_pondering_start(struct uct *u, struct board *b0, struct tree *t, enum stone 
 	struct board *b = malloc2(sizeof(*b)); board_copy(b, b0);
 
 	/* *b0 did not have the genmove'd move played yet. */
-	struct move m = { .coord = our_move, .color = stone_other(color) };
-	int res = board_play(b, &m);
-	assert(res >= 0);
-	setup_dynkomi(u, b, stone_other(m.color));
+	if (u->genmove_pondering) {
+		struct move m = { .coord = our_move, .color = stone_other(color) };
+		int res = board_play(b, &m);
+		assert(res >= 0);
+	}
+	if (b->last_move.color != S_NONE)
+		assert(b->last_move.color == stone_other(color));
+	
+	setup_dynkomi(u, b, color);
 
 	/* Start MCTS manager thread "headless". */
 	static struct uct_search_state s;
@@ -494,7 +499,8 @@ genmove(struct engine *e, struct board *b, struct time_info *ti, enum stone colo
 {
 	struct uct *u = e->data;
 	double time_start = time_now();
-	u->pass_all_alive |= pass_all_alive;
+	u->pass_all_alive |= pass_all_alive;	
+
 	uct_pondering_stop(u);
 
 	if (u->genmove_reset_tree && u->t) {
@@ -525,8 +531,9 @@ genmove(struct engine *e, struct board *b, struct time_info *ti, enum stone colo
 
 static coord_t
 uct_genmove(struct engine *e, struct board *b, struct time_info *ti, enum stone color, bool pass_all_alive)
-{
+{	
 	struct uct *u = e->data;
+
 	coord_t best_coord;
 	struct tree_node *best = genmove(e, b, ti, color, pass_all_alive, &best_coord);
 
@@ -570,10 +577,34 @@ uct_genmove(struct engine *e, struct board *b, struct time_info *ti, enum stone 
 		uct_prepare_move(u, b, stone_other(color));
 	}	
 
-	if (u->pondering_opt && u->t)
+	if (u->pondering_opt && u->t) {
+		u->genmove_pondering = 1;
 		uct_pondering_start(u, b, u->t, stone_other(color), best_coord);
+	}
 
 	return best_coord;
+}
+
+/* Start pondering for the sake of frontend running Pachi. */
+static void
+uct_analyze(struct engine *e, struct board *b, enum stone color, int start)
+{
+	struct uct *u = e->data;
+
+	if (!start) {
+		if (u->pondering) uct_pondering_stop(u);
+		if (u->t)         reset_state(u);
+		return;
+	}
+
+	/* Start pondering if not already. */
+	if (u->pondering)  return;
+
+	if (!u->t)
+		uct_prepare_move(u, b, color);
+
+	u->genmove_pondering = 0;
+	uct_pondering_start(u, b, u->t, color, pass);
 }
 
 void
@@ -1377,6 +1408,7 @@ engine_uct_init(struct engine *e, char *arg, struct board *b)
 #endif
 	e->best_moves = uct_best_moves;
 	e->evaluate = uct_evaluate;
+	e->analyze = uct_analyze;
 	e->dead_group_list = uct_dead_group_list;
 	e->stop = uct_stop;
 	e->done = uct_done;

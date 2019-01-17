@@ -27,6 +27,7 @@ typedef struct
 	struct move move[600];     /* move history, for undo */
 	int         moves;
 	bool        undo_pending;
+	bool        analyze_running;
 } gtp_t;
 
 #define next_tok(to_) \
