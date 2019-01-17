@@ -107,20 +107,16 @@ uct_pass_is_safe(struct uct *u, struct board *b, enum stone color, bool pass_all
 		return false;
 	
 	/* Make sure enough playouts are simulated to get a reasonable dead group list. */
+	struct move_queue dead, unclear;	
 	uct_mcowner_playouts(u, b, color);
-
-	/* Save dead groups for final_status_list dead. */
-	struct move_queue unclear;
-	struct move_queue *dead = &u->dead_groups;
-	u->pass_moveno = b->moves + 1;
-	get_dead_groups(b, &u->ownermap, dead, &unclear);
+	get_dead_groups(b, &u->ownermap, &dead, &unclear);
 	
 	if (pass_all_alive) {
 		*msg = "need to remove opponent dead groups first";
-		for (unsigned int i = 0; i < dead->moves; i++)
-			if (board_at(b, dead->move[i]) == stone_other(color))
+		for (unsigned int i = 0; i < dead.moves; i++)
+			if (board_at(b, dead.move[i]) == stone_other(color))
 				return false;
-		dead->moves = 0; // our dead stones are alive when pass_all_alive is true
+		dead.moves = 0; // our dead stones are alive when pass_all_alive is true
 	}
 
 	/* Check score estimate first, official score is off if position is not final */
@@ -131,13 +127,13 @@ uct_pass_is_safe(struct uct *u, struct board *b, enum stone color, bool pass_all
 	
 	int final_ownermap[board_size2(b)];
 	int dames;
-	floating_t final_score = board_official_score_details(b, dead, &dames, final_ownermap); 
+	floating_t final_score = board_official_score_details(b, &dead, &dames, final_ownermap); 
 	if (color == S_BLACK)  final_score = -final_score;
 	
 	/* Don't go to counting if position is not final.
 	 * Skip extra checks for pass_all_alive in case there are
 	 * positions which don't pass them (too many sekis for example). */
-	if (!board_position_final_full(b, &u->ownermap, dead, &unclear, score_est,
+	if (!board_position_final_full(b, &u->ownermap, &dead, &unclear, score_est,
 				       final_ownermap, dames, final_score, msg, !pass_all_alive))
 		return false;
 	
