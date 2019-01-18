@@ -558,24 +558,21 @@ break_symmetry:
 }
 
 
-void
-board_handicap_stone(struct board *board, int x, int y, FILE *f)
+static void
+board_handicap_stone(struct board *board, int x, int y, struct move_queue *q)
 {
 	struct move m;
 	m.color = S_BLACK; m.coord = coord_xy(board, x, y);
 
-	board_play(board, &m);
+	int r = board_play(board, &m);  assert(r >= 0);
 
-	char *str = coord2str(m.coord, board);
-	if (DEBUGL(1))
-		fprintf(stderr, "choosing handicap %s (%d,%d)\n", str, x, y);
-	if (f) fprintf(f, "%s ", str);
-	free(str);
+	if (q)  mq_add(q, m.coord, 0);
 }
 
 void
-board_handicap(struct board *board, int stones, FILE *f)
+board_handicap(struct board *board, int stones, struct move_queue *q)
 {
+	assert(stones <= 9);
 	int margin = 3 + (board_size(board) >= 13);
 	int min = margin;
 	int mid = board_size(board) / 2;
@@ -590,13 +587,13 @@ board_handicap(struct board *board, int stones, FILE *f)
 	board->handicap = stones;
 
 	if (stones == 5 || stones == 7) {
-		board_handicap_stone(board, mid, mid, f);
+		board_handicap_stone(board, mid, mid, q);
 		stones--;
 	}
 
 	int i;
 	for (i = 0; i < stones; i++)
-		board_handicap_stone(board, places[i][0], places[i][1], f);
+		board_handicap_stone(board, places[i][0], places[i][1], q);
 }
 
 

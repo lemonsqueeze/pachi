@@ -23,7 +23,10 @@ typedef struct
 	int   replied;
 
 	/* Global fields: */
-	int played_games;
+	int         played_games;
+	struct move move[600];     /* move history, for undo */
+	int         moves;
+	bool        undo_pending;
 } gtp_t;
 
 #define next_tok(to_) \
@@ -37,7 +40,7 @@ typedef struct
 gtp_t *gtp_init_global();
 void   gtp_init(gtp_t *gtp);
 
-enum parse_code gtp_parse(gtp_t *gtp, struct board *b, struct engine *e, struct time_info *ti, char *buf);
+enum parse_code gtp_parse(gtp_t *gtp, struct board *b, struct engine *e, char *e_arg, struct time_info *ti, char *buf);
 bool gtp_is_valid(struct engine *e, const char *cmd);
 void gtp_reply(gtp_t *gtp, ...);
 void gtp_reply_printf(gtp_t *gtp, const char *format, ...);

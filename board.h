@@ -364,7 +364,7 @@ int board_cmp(struct board *b1, struct board *b2);
 int board_quick_cmp(struct board *b1, struct board *b2);
 
 /* Place given handicap on the board; coordinates are printed to f. */
-void board_handicap(struct board *board, int stones, FILE *f);
+void board_handicap(struct board *board, int stones, struct move_queue *q);
 
 /* Returns group id, 0 on allowed suicide, pass or resign, -1 on error */
 int board_play(struct board *board, struct move *m);
