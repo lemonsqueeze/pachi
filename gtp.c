@@ -168,14 +168,22 @@ gtp_is_valid(struct engine *e, const char *cmd)
 	return s[len] == '\0' || s[len] == '\n';
 }
 
+/* Add move to gtp move history. */
+static void
+gtp_add_move(gtp_t *gtp, struct move *m)
+{
+	assert(gtp->moves < (int)(sizeof(gtp->move) / sizeof(gtp->move[0])));
+	gtp->move[gtp->moves++] = *m;
+}
+
 static int
 gtp_board_play(gtp_t *gtp, struct board *b, struct move *m)
 {
 	int r = board_play(b, m);
 	if (r < 0)  return r;
 	
-	/* Save move for undo. */
-	gtp->move[gtp->moves++] = *m;
+	/* Add to gtp move history. */
+	gtp_add_move(gtp, m);
 	
 	return r;
 }
@@ -269,7 +277,7 @@ cmd_clear_board(struct board *board, struct engine *engine, struct time_info *ti
 	if (DEBUGL(3) && debug_boardprint)
 		board_print(board, stderr);
 
-	/* Reset moves for undo. */
+	/* Reset move history. */
 	gtp->moves = 0;
 	
 	return P_ENGINE_RESET;
@@ -374,8 +382,8 @@ cmd_pachi_predict(struct board *board, struct engine *engine, struct time_info *
 
 	char *str = predict_move(board, engine, ti, &m);
 
-	/* Save move for undo. */
-	gtp->move[gtp->moves++] = m;
+	/* Add to gtp move history. */
+	gtp_add_move(gtp, &m);
 	
 	gtp_reply(gtp, str, NULL);
 	free(str);
@@ -511,9 +519,9 @@ cmd_fixed_handicap(struct board *b, struct engine *engine, struct time_info *ti,
 	for (unsigned int i = 0; i < q.moves; i++) {
 		struct move m = { .coord = q.move[i], .color = S_BLACK };
 		sbprintf(buf, "%s ", coord2sstr(m.coord, b));
-		
-		/* Save move for undo. */
-		gtp->move[gtp->moves++] = m;
+
+		/* Add to gtp move history. */
+		gtp_add_move(gtp, &m);
 	}
 	
 	gtp_reply(gtp, buf->str, NULL);
