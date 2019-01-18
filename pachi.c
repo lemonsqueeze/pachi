@@ -359,12 +359,14 @@ int main(int argc, char *argv[])
 
 	if (gtp_port)		open_gtp_connection(&gtp_sock, gtp_port);
 
+	/* Toplevel gtp struct */
+	gtp_t *gtp = gtp_init_global();
 	for (;;) {
 		char buf[4096];
 		while (fgets(buf, 4096, stdin)) {
 			if (DEBUGL(1))  fprintf(stderr, "IN: %s", buf);
 
-			enum parse_code c = gtp_parse(b, &e, ti, buf, false);
+			enum parse_code c = gtp_parse(gtp, b, &e, ti, buf);
 			if (c == P_ENGINE_RESET) {
 				ti[S_BLACK] = ti_default;
 				ti[S_WHITE] = ti_default;

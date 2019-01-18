@@ -276,11 +276,13 @@ joseki_load(int bsize)
 	struct time_info ti_default = { .period = TT_NULL };
 	struct time_info ti[S_MAX] = { [S_BLACK] = ti_default, [S_WHITE] = ti_default };
 	char buf[4096];
+	gtp_t gtp;  gtp_init(&gtp);
 	for (int lineno = 1; fgets(buf, 4096, f); lineno++) {
 		if (bsize != 19+2 && convert_coords(bsize, buf) < 0)
 			skip_sequence(buf, 4096, f, &lineno);
 
-		enum parse_code c = gtp_parse(b, &e, ti, buf, true);  /* quiet */
+		gtp.quiet = true;
+		enum parse_code c = gtp_parse(&gtp, b, &e, ti, buf);  /* quiet */
 		/* TODO check gtp command didn't gtp_error() also, will still return P_OK on error ... */
 		if (c != P_OK && c != P_ENGINE_RESET)
 			die("%s:%i  gtp command '%s' failed, aborting.\n", fname, lineno, buf);		
