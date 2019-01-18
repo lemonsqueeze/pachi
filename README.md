@@ -50,7 +50,7 @@ To build Pachi, simply type:
 
 The resulting binary program `pachi` is a GTP client. Connect to it
 with your favorite Go program interface (e.g. [gogui][1], [sabaki][2], [qgo][3]),
-or use [kgsGtp][4] to connect it to KGS.
+or use [kgsGtp][4] to connect it to KGS. It can run in [Lizzie](#Lizzie) too.
 
 > DO NOT make the GTP interface accessible directly to untrusted users
 > since the parser is not secure - see the [HACKING](HACKING?raw=true)
@@ -190,6 +190,21 @@ via the live gfx commands.
 ![dcnn colormap](media/screenshot_dcnn_colors.png?raw=true "dcnn colormap")
 
 There are some non-gui tools for game analysis as well, see below.
+
+
+## Lizzie
+
+<a href="media/screenshot_lizzie_big.jpg?raw=true"> <img align="right" src="media/screenshot_lizzie.jpg" title="pachi in lizzie v0.6 !" /> </a>
+
+It's also possible to run Pachi with Lizzie to analyze things !
+The graphics are amazing, and very fast too. Makes it very enjoyable to explore variations,
+analyze games or visualize what Pachi is doing while it's thinking. 
+
+Edit Lizzie config.txt:
+
+    "engine-command": "/path/to/pachi --version=0.16 reporting=leelaz,reportfreq=500",
+
+Tweak reportfreq to change update speed.
 
 
 ## Logs
