@@ -195,11 +195,14 @@ cmd_protocol_version(struct board *board, struct engine *engine, struct time_inf
 	return P_OK;
 }
 
+char *custom_gtp_name = NULL;
+
+/* See also "banner" uct param to set engine comment. */
 static enum parse_code
 cmd_name(struct board *board, struct engine *engine, struct time_info *ti, gtp_t *gtp)
-{
-	/* KGS hack */
-	gtp_reply(gtp, "Pachi ", engine->name, NULL);
+{	
+	if (custom_gtp_name)  gtp_reply(gtp, custom_gtp_name, NULL);
+	else                  gtp_reply(gtp, "Pachi ", engine->name, NULL);   /* KGS hack */
 	return P_OK;
 }
 
@@ -210,10 +213,13 @@ cmd_echo(struct board *board, struct engine *engine, struct time_info *ti, gtp_t
 	return P_OK;
 }
 
+char *custom_gtp_version = NULL;
+
 static enum parse_code
 cmd_version(struct board *board, struct engine *engine, struct time_info *ti, gtp_t *gtp)
 {
-	gtp_reply(gtp, PACHI_VERSION, ": ", engine->comment, " Have a nice game!", NULL);
+	if (custom_gtp_version)  gtp_reply(gtp, custom_gtp_version, NULL);
+	else                     gtp_reply(gtp, PACHI_VERSION, ": ", engine->comment, " Have a nice game!", NULL);
 	return P_OK;
 }
 

@@ -5,6 +5,9 @@ struct board;
 struct engine;
 struct time_info;
 
+extern char *custom_gtp_version;
+extern char *custom_gtp_name;
+
 enum parse_code {
 	P_OK,
 	P_NOREPLY,
