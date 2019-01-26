@@ -12,7 +12,6 @@
 #include <caffe/caffe.hpp>
 using namespace caffe;
 
-extern "C" {
 #include "debug.h"
 #include "util.h"
 
@@ -102,5 +101,4 @@ caffe_get_data(float *data, float *result, int planes, int size)
 }
 
 	
-} /* extern "C" */
 

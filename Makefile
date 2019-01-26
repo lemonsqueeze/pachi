@@ -91,7 +91,7 @@ DATADIR ?= $(PREFIX)/share/pachi
 OPT ?= -O3
 COMMON_FLAGS := -Wall -ggdb3 $(OPT) -D_GNU_SOURCE
 CFLAGS       := -std=gnu99 -pthread -Wsign-compare
-CXXFLAGS     := -std=c++11
+CXXFLAGS     := -std=c++11 -Wno-write-strings
 
 
 ###################################################################################################################
