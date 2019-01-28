@@ -1,5 +1,10 @@
 INCLUDES=-I..
-OBJS=test.o test_undo.o
+
+OBJS := test.o
+
+ifeq ($(BOARD_TESTS), 1)
+	OBJS += test_undo.o board_regtest.o
+endif
 
 all: lib.a
 lib.a: $(OBJS)
