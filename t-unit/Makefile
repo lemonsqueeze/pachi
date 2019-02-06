@@ -3,7 +3,7 @@ INCLUDES=-I..
 OBJS := test.o
 
 ifeq ($(BOARD_TESTS), 1)
-	OBJS += test_undo.o board_regtest.o
+	OBJS += test_undo.o board_regtest.o moggy_regtest.o
 endif
 
 all: lib.a

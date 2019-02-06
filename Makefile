@@ -352,9 +352,10 @@ build.h: .git/HEAD .git/index Makefile
 
 # Run unit tests
 test: FORCE
-        ifeq ($(BOARD_TESTS), 1)
-		+@make test_board
-        endif
+	@if ./pachi --compile-flags | grep -q "BOARD_TESTS"; then  \
+		make test_board; \
+#               make test_moggy; \
+	fi
 
 	t-unit/run_tests
 
@@ -368,14 +369,23 @@ test: FORCE
 	fi
 
 test_board: FORCE
-        ifneq ($(BOARD_TESTS), 1)
-		@echo "Looks like board tests are missing, try building with BOARD_TESTS=1"; exit 1
-        endif
+	@if ! ./pachi --compile-flags | grep -q "BOARD_TESTS"; then  \
+		echo "Looks like board tests are missing, try building with BOARD_TESTS=1"; exit 1;  \
+	fi
+
 	@echo -n "Testing board logic didn't change...   "
 	@  ./pachi -d0 < t-unit/regtest.gtp  2>regtest.out  >/dev/null
 	@if bzcmp regtest.out t-unit/regtest.ref.bz2  >/dev/null; then \
 	   echo "OK"; else  echo "FAILED"; exit 1;  fi
+
 	@./pachi -d2 -u t-unit/board_undo.t
+
+
+test_moggy: FORCE
+	@echo -n "Testing moggy logic didn't change...   "
+	@  echo "tunit moggy_regtest" | ./pachi -d0 2>moggy.out  >/dev/null
+	@if bzcmp moggy.out t-unit/moggy.ref.bz2  >/dev/null; then \
+	   echo "OK"; else  echo "FAILED"; exit 1;  fi
 
 
 # Prepare for install
