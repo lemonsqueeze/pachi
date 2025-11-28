@@ -72,9 +72,24 @@ cmd_gogui_version(board_t *b, engine_t *e, time_info_t *ti, gtp_t *gtp)
 	return P_OK;
 }
 
+/* Show debugging analyze commands ?
+ * Default: on/off based on debug level (gogui 1.4.12: can toggle from analyze window) */
+static int debugging_commands = -1;
+
+/* Toggle show/hide debugging analyze commands */
+enum parse_code
+cmd_gogui_toggle_debugging_commands(board_t *b, engine_t *e, time_info_t *ti, gtp_t *gtp)
+{
+	debugging_commands = !debugging_commands;
+	return P_OK;
+}
+
 enum parse_code
 cmd_gogui_analyze_commands(board_t *b, engine_t *e, time_info_t *ti, gtp_t *gtp)
 {
+	if (debugging_commands == -1)
+		debugging_commands = DEBUGL(3);
+
 	gtp_printf(gtp, "");  /* gtp prefix */
 
 	if (e->best_moves) {
@@ -120,16 +135,23 @@ cmd_gogui_analyze_commands(board_t *b, engine_t *e, time_info_t *ti, gtp_t *gtp)
 		printf("gfx/Live gfx = Winrates/gogui-livegfx winrates\n");
 		printf("gfx/Live gfx = None/gogui-livegfx\n");
 	}
-#ifdef JOSEKIFIX
-	printf("gfx/          Josekifix Set Coord/gogui-josekifix_set_coord %%p\n");
-	printf("gfx/          Josekifix Show Pattern/gogui-josekifix_show_pattern\n");
-	printf("gfx/          Josekifix Dump Templates/gogui-josekifix_dump_templates\n");
-#endif
-	
+
 	/* Debugging */
-	if (DEBUGL(3)) {
+	if (!debugging_commands && gogui_version >= GOGUI_VERSION(1, 4, 12)) {
+		/* Toggle show/hide debugging analyze commands */
+		printf("reload/Show Debugging Commands/gogui-toggle_debugging_commands\n");
+	}
+	if (debugging_commands) {
+		printf("gfx/ /echo\n");
+		printf("reload/[ Debugging ]/gogui-toggle_debugging_commands\n");
 		printf("gfx/Bad Selfatari/gogui-bad_selfatari\n");
 		printf("gfx/Color Palette/gogui-color_palette\n");
+
+#ifdef JOSEKIFIX
+		printf("gfx/          Josekifix Set Coord/gogui-josekifix_set_coord %%p\n");
+		printf("gfx/          Josekifix Show Pattern/gogui-josekifix_show_pattern\n");
+		printf("gfx/          Josekifix Dump Templates/gogui-josekifix_dump_templates\n");
+#endif
 	}
 	
 	return P_OK;
