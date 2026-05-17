@@ -117,11 +117,15 @@ You want joseki fixes working if playing ranked games
 
 **Other Options**
 
-* `pachi --modern-joseki`        Play modern josekis
-
 * `pachi resign_threshold=0.25`     Resign when winrate < 25% (default: 20%).
 
 * `pachi reportfreq=1s`         Show search progress every second (default: 1000 playouts).
+
+* `pachi --modern-joseki`        Play modern josekis (experimental)
+
+  KataGo plays first moves in each corner. Significantly stronger, but can make Pachi a pretty
+  unbalanced player which plays godly josekis but doesn't have the strength to follow up on them.
+  Needs more testing.
 
 * `pachi -t 30 threads=4 max_tree_size=500 pondering`
 
